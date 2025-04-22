@@ -1,0 +1,88 @@
+import React, { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchChats } from '../redux/chatSlice'
+import SearchBar from './SearchBar'
+import Navbar from './Navbar'
+import SearchResults from './SearchResults'
+import { auth } from '../firebase/config'
+
+const ConversationList = ({ selectedUser, setSelectedUser }) => {
+
+    const dispatch = useDispatch()
+    const authUser = useSelector(state => state.auth)
+    const chats = useSelector(state => state.chat.chats)
+    const loading = useSelector(state => state.chat.loading)
+    const [search, setSearch] = useState("")
+    const [usersNotSelf, setUsersNotSelf] = useState({})
+
+    useEffect(() => {
+        if (authUser.user) {
+            dispatch(fetchChats(authUser.user.uid))
+            console.log(chats);
+        }
+    },[authUser, dispatch])
+
+    useEffect(() => {
+        // Khi `chats` thay đổi, cần tính toán lại `usersNotSelf`
+        if (chats) {
+            const users = chats.reduce((acc, chat) => {
+                if (chat.members) {
+                    const user = chat.members.find(member => member.uid !== authUser.user.uid)
+                    if (user) {
+                        acc[chat.id] = user // Lưu user trong một object với key là ID cuộc trò chuyện
+                    }
+                }
+                return acc;
+            }, {})
+            setUsersNotSelf(users)
+        }
+    }, [chats, authUser.user])
+
+  return (
+    <div className='w-full h-full flex flex-col justify-center items-center'>
+
+        {/* Search Bar*/}
+        <SearchBar search={search} setSearch={setSearch}/>
+
+        {/*Search result*/}
+        {
+            search.length > 0 && (
+                <SearchResults search={search} selectedUser={selectedUser} setSelectedUser={setSelectedUser}/>
+            )
+        }
+        
+
+        <div className='w-full mt-14 flex flex-col justify-center items-center overflow-y-scroll'>
+            {chats.map((chat, index) => {
+                const user = usersNotSelf[chat.id]
+                console.log(user);
+                
+                return (
+                <div
+                    key={index}
+                    onClick={() => setSelectedUser(user)}
+                    className='w-full flex items-center start gap-5 px-4 py-2 border border-slate-100
+                '>
+                    <div className='flex items-center gap-2'>
+                        <img src={user ? user.avatar : chat.groupAvatar} alt="Avatar" className='w-12 h-12 rounded-full' />
+                    </div>
+                    <div>
+                        <h3 className='text-lg font-semibold flex items-center gap-2'>
+                            <div className='w-2 h-2 rounded-full bg-green-500'></div>
+                            {user?.username} 
+                        </h3>
+                        <p className='text-gray-500 text-ellipsis line-clamp-1'>
+                            How are you doing man?
+                        </p>
+                    </div>
+                </div>
+            )})}        
+        </div>
+        
+        {/* Nav bar */}
+        <Navbar/>
+    </div>
+  )
+}
+
+export default ConversationList
