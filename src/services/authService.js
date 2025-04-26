@@ -16,9 +16,10 @@ export const signInWithGoogle = async () => {
     try {
         const result = await signInWithPopup(auth, googleProvider);
         const user = result.user;
-        
+
         const userRef = doc(db, 'users', user.uid);
-        const docSnap = await getDoc(userRef);
+        let docSnap = await getDoc(userRef);
+
         if (!docSnap.exists()) {
             await setDoc(userRef, {
                 uid: user.uid,
@@ -26,32 +27,38 @@ export const signInWithGoogle = async () => {
                 username: user.displayName,
                 avatar: user.photoURL,
                 username_lowercase: normalizeString(user.displayName),
-                phone: user.phoneNumber || "",
-                createdAt: new Date(),
+                phoneNumber: user.phoneNumber || "",
+                createdAt: serverTimestamp(),
                 friends: [],
-                friendRequests: []
+                friendRequests: [],
+                friendRequestsSent: [],
             });
+
+            docSnap = await getDoc(userRef); // get lại doc mới tạo
         }
-        console.log(user);
-        
+
+        const userData = docSnap.data();
+
         return {
-            uid: user.uid,
-            email: user.email,
-            username: user.displayName,
-            avatar: user.photoURL,
-            phoneNumber: user.phoneNumber || "",
-            createdAt: new Date(parseInt(user.reloadUserInfo.createdAt)).toISOString() || new Date().toISOString(),
-            friends: user.friends || [],
-            friendRequests: user.friendRequests || [],
+            uid: userData.uid,
+            email: userData.email,
+            username: userData.username,
+            avatar: userData.avatar,
+            phoneNumber: userData.phoneNumber || "",
+            createdAt: userData.createdAt?.toDate().toISOString() || "",
+            friends: userData.friends || [],
+            friendRequests: userData.friendRequests || [],
+            friendRequestsSent: userData.friendRequestsSent || [],
         };
-        
+
     } catch (error) {
         console.error("Google Sign-in Error: ", error.message);
         throw new Error(error.message);
     }
 };
 
-export const signUpWithEmail = async (email, password, username, phoneNumber = "", avatarUrl = "") => {
+
+export const signUpWithEmail = async (email, password, username, phone = "", avatarUrl = "") => {
     try {
         console.log(username);
         
@@ -71,11 +78,12 @@ export const signUpWithEmail = async (email, password, username, phoneNumber = "
             email: user.email,
             username,
             avatar: avatarUrl,
-            phoneNumber,
+            phone,
             username_lowercase: normalizeString(username),
             createdAt: serverTimestamp(),
             friends: [],
-            friendRequests: []
+            friendRequests: [],
+            friendRequestsSent: [],
         };
 
         await setDoc(doc(db, 'users', user.uid), userData);
@@ -110,10 +118,11 @@ export const signInWithEmail = async (email, password) => {
             email: userData.email,
             username: userData.username,
             avatar: userData.avatar,
-            phone: userData.phoneNumber || "",
-            createdAt: userData.toISOString(),
+            phone: userData.phone || "",
+            createdAt: userData.createdAt?.toDate().toISOString(),
             friends: userData.friends || [],
             friendRequests: userData.friendRequests || [],
+            friendRequestsSent: userData.friendRequestsSent || [],
         }
     } catch (error) {
         console.log(error);

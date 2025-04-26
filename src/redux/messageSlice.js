@@ -51,7 +51,6 @@ export const fetchMessages = createAsyncThunk("messages/fetchMessages", async (c
         .addCase(sendMessage.pending, (state) => { state.loading = true; })
         .addCase(sendMessage.fulfilled, (state, action) => {
           state.loading = false;
-          state.messages.push(action.payload);
         })
         .addCase(sendMessage.rejected, (state, action) => {
           state.loading = false;

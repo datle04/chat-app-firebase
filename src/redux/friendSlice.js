@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice, isRejectedWithValue } from "@reduxjs/toolkit";
 import { getFriends, sendFriendRequest } from "../services/friendService";
-
+import { setUser } from './authSlice.js'
 export const fetchFriends = createAsyncThunk('friends/fetchFriends', async (userId, { rejectWithValue }) => {
     try {
         return await getFriends(userId);
@@ -9,9 +9,13 @@ export const fetchFriends = createAsyncThunk('friends/fetchFriends', async (user
       }
 });
 
-export const sendRequest = createAsyncThunk("friends/sendRequest", async ({ currentUserId, targetUserId }, { rejectWithValue }) => {
+export const sendRequest = createAsyncThunk("friends/sendRequest", async ({ currentUserId, targetUserId, authUser }, { rejectWithValue, dispatch }) => {
     try {
-      return await sendFriendRequest(currentUserId, targetUserId);
+      const response = await sendFriendRequest(currentUserId, targetUserId, authUser);
+      console.log(response.currentUser);
+
+      dispatch(setUser(response.currentUser))
+      return response
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -34,7 +38,7 @@ const friendSlice = createSlice({
         })
   
         .addCase(sendRequest.pending, (state) => { state.loading = true; })
-        .addCase(sendRequest.fulfilled, (state, action) => {
+        .addCase(sendRequest.fulfilled, (state, action) => {      
           state.loading = false;
           state.friendRequests.push({ userId: action.payload.targetUserId, status: "pending" });
       })

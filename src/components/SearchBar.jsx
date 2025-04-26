@@ -1,11 +1,19 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { CiSearch } from "react-icons/ci";
 import { IoMdAdd } from "react-icons/io";
+import { FaBell } from "react-icons/fa";
+import NotificationScreen from './NotificationScreen';
+import SearchResults from './SearchResults';
 
 const SearchBar = ({
     search,
     setSearch,
+    selectedUser,
+    setSelectedUser
 }) => {   
+
+  const [notiScreen, setNotiScreen] = useState(false)
+
   return (
     <div 
         className='
@@ -24,8 +32,26 @@ const SearchBar = ({
         />
       </div>
       <div className='w-[15%] flex justify-center items-center text-white text-2xl font-bold cursor-pointer'>
-        <IoMdAdd  />
+        <FaBell 
+          onClick={() => setNotiScreen(!notiScreen)}
+          className='
+            relative text-lg 
+        '/>
+        {
+          notiScreen && (
+            <NotificationScreen notiSrcreen={notiScreen} setNotiScreen={setNotiScreen}/>
+          )
+        }  
       </div>
+      {
+        search.length > 0 && (
+          <SearchResults 
+            search={search} 
+            selectedUser={selectedUser} 
+            setSelectedUser={setSelectedUser}
+          />
+        )
+      }
     </div>
   )
 }

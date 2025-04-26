@@ -18,10 +18,7 @@ import { db } from "../firebase/config";
  * Gửi tin nhắn vào chat
  */
 export const sendMessageToChat = async ({senderId, chatId, content = "", attachment = ""}) => {
-    console.log(
-        "Function called with parameters: ", 
-        { senderId, chatId, content, attachment }
-    );
+    console.log("Function called with parameters:", { senderId, chatId, content, attachment });
     
     try {
         const messageRef = collection(db, 'messages');
@@ -34,7 +31,21 @@ export const sendMessageToChat = async ({senderId, chatId, content = "", attachm
             isDeleted: false,
             readBy: []
         };
+
         const docRef = await addDoc(messageRef, newMessage);
+
+        const chatRef = doc(db, 'chats', chatId);
+        await updateDoc(chatRef, {
+            lastMessage: {
+                content,
+                senderId,
+                attachment,
+                timestamp: serverTimestamp(), // giữ đồng bộ thời gian
+                isDeleted: false
+            },
+            updatedAt: serverTimestamp(), // cập nhật thời gian chỉnh sửa
+        });
+
         return {
             id: docRef.id,
             ...newMessage,

@@ -1,11 +1,12 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { addMemberToChat, getOrCreateChatService, getUserChats } from "../services/chatService";
+import { addMemberToChat, createChatService, getChatService, getUserChats } from "../services/chatService";
 
 // Lấy danh sách cuộc trò chuyện
 export const fetchChats = createAsyncThunk("chats/fetchChats", async (userId, { rejectWithValue }) => {
     try {
       const data =  await getUserChats(userId);
-
+      // console.log(data);
+      
       return data;
       
     } catch (error) {
@@ -14,15 +15,24 @@ export const fetchChats = createAsyncThunk("chats/fetchChats", async (userId, { 
   });
   
   // Tạo cuộc trò chuyện mới (chat nhóm hoặc chat riêng)
-  export const getOrCreateChat = createAsyncThunk("chats/getOrCreateChat", async ({ members, name }, { rejectWithValue }) => {
+  export const createChat = createAsyncThunk("chats/createChat", async ({ members, name, groupAvatar }, { rejectWithValue }) => {
     try {
-      console.log(members);
-      
-      return await getOrCreateChatService(members, name); // Truyền cả name và members vào service
+      let chat = await createChatService(members, name, groupAvatar);
+      return chat;
+
     } catch (error) {
       return rejectWithValue(error.message);
     }
   });  
+
+  export const getChat = createAsyncThunk("chats/getChat", async ({ members }, { rejectWithValue }) => {
+    try {
+      const chat = await getChatService(members);
+      return chat;
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  });
   
   // Thêm thành viên vào nhóm chat
   export const addMember = createAsyncThunk("chats/addMembers", async ({ chatId, members }, { rejectWithValue }) => {
@@ -36,7 +46,12 @@ export const fetchChats = createAsyncThunk("chats/fetchChats", async (userId, { 
   const chatSlice = createSlice({
     name: "chats",
     initialState: { chats: [], loading: false, error: null },
-    reducers: {},
+    reducers: {
+      setChats: (state, action) => {
+        state.chats = action.payload;
+        state.loading = false;
+      }
+    },
     extraReducers: (builder) => {
       builder
         .addCase(fetchChats.pending, (state) => { state.loading = true; })
@@ -51,23 +66,41 @@ export const fetchChats = createAsyncThunk("chats/fetchChats", async (userId, { 
           state.error = action.payload;
         })
   
-        .addCase(getOrCreateChat.pending, (state) => { state.loading = true; })
-        .addCase(getOrCreateChat.fulfilled, (state, action) => {
+        .addCase(getChat.pending, (state) => { state.loading = true; })
+        .addCase(getChat.fulfilled, (state, action) => {
           state.loading = false;
-          const existingChat = state.chats.find(chat => chat.id === action.payload);
-          if (!existingChat) {
-            state.chats.push({ 
-              id: action.payload, 
-              members: action.payload.members, 
-              name: action.payload.name || "Unnamed Group Chat" // Lưu tên nhóm vào state, nếu không có tên thì mặc định là "Unnamed Group Chat"
-            });
+          const chatId = action.payload;  // nếu không có chat thì trả về null
+          
+          if (chatId) { // Nếu có cuộc trò chuyện
+            const existing = state.chats.find(c => c.id === chatId);
+            if (!existing) {           
+              state.chats.push({ id: chatId });
+            }
+          } else {
+            // Nếu không có chat, không cần làm gì thêm
+            console.log("Chưa có cuộc trò chuyện. Chờ người dùng gửi tin nhắn.");
           }
         })
-        .addCase(getOrCreateChat.rejected, (state, action) => {
+        .addCase(getChat.rejected, (state, action) => {
           state.loading = false;
           state.error = action.payload;
         })
-  
+        .addCase(createChat.pending, (state) => { 
+          state.loading = true; 
+        })
+        .addCase(createChat.fulfilled, (state, action) => {
+          state.loading = false;
+          const chat = action.payload;
+          
+          const existing = state.chats.find(c => c.id === chat.id);
+          if (!existing) {
+            state.chats.push(chat);
+          }
+        })
+        .addCase(createChat.rejected, (state, action) => {
+          state.loading = false;
+          state.error = action.payload;
+        })
         .addCase(addMember.pending, (state) => { state.loading = true; })
         .addCase(addMember.fulfilled, (state, action) => {
           state.loading = false;
@@ -84,4 +117,5 @@ export const fetchChats = createAsyncThunk("chats/fetchChats", async (userId, { 
     },
   });
   
+  export const { setChats } = chatSlice.actions;
   export default chatSlice.reducer;

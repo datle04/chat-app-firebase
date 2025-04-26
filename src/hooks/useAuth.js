@@ -29,6 +29,7 @@ const useAuth = () => {
                             createdAt: userData.createdAt.toDate().toISOString(),
                             friends: userData.friends || [],
                             friendRequests: userData.friendRequests || [],
+                            friendRequestsSent: userData.friendRequestsSent || [],
                         }));
                     } else {
                         console.log("No user document found!");
