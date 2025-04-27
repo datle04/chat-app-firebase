@@ -3,6 +3,7 @@ import { addMemberToChat, createChatService, getChatService, getUserChats } from
 
 // Lấy danh sách cuộc trò chuyện
 export const fetchChats = createAsyncThunk("chats/fetchChats", async (userId, { rejectWithValue }) => {
+  
     try {
       const data =  await getUserChats(userId);
       // console.log(data);

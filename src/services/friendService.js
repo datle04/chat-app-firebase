@@ -5,7 +5,6 @@ export const getFriends = async (userId) => {
     const userRef = doc(db, 'users', userId);
 
     const userSnap = await getDoc(userRef);
-    console.log(userSnap);
     return {
         friends: userSnap.data().friends || [],
         friendRequests: userSnap.data().friendRequests || [],

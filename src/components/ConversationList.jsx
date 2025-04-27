@@ -15,8 +15,9 @@ const ConversationList = ({ search, setSearch, selectedUser, setSelectedUser }) 
     const loading = useSelector(state => state.chat.loading)
     const [usersNotSelf, setUsersNotSelf] = useState({})
 
-    useEffect(() => {
+    useEffect(() => {   
         if (authUser.user) {
+            console.log(authUser.user.uid);      
             dispatch(fetchChats(authUser.user.uid))
         }    
     },[authUser, dispatch])
@@ -25,7 +26,7 @@ const ConversationList = ({ search, setSearch, selectedUser, setSelectedUser }) 
         let unsubscribe;
         if (authUser.user) {
             unsubscribe = listenToUserChats(authUser.user.uid, (updatedChats) => {
-                // 👉 Sắp xếp trước khi lưu
+                // Sắp xếp trước khi lưu
                 const sortedChats = updatedChats.sort((a, b) => {
                     const timeA = a.updatedAt?.toMillis?.() || 0;
                     const timeB = b.updatedAt?.toMillis?.() || 0;

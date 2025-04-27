@@ -11,8 +11,8 @@ const useAuth = () => {
     const [loading, setLoading] = useState(true);
     const dispatch = useDispatch();
 
-    useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    useEffect(() => {        
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {           
             if (user) {
                 try {
                     const userDocRef = doc(db, 'users', user.uid);

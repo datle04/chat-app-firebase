@@ -14,7 +14,6 @@ const SearchResults = ({ search, selectedUser, setSelectedUser}) => {
     const dispatch = useDispatch();
 
     useEffect(() => {
-        console.log(authUser)
         const fetchSearch = setTimeout(async () => {
             if (search.length > 0) {
                 const result = await searchUserByUsername(search);

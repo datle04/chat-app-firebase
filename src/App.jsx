@@ -22,7 +22,6 @@ function App() {
 
   useEffect(() => {
     let unsubscribe;
-    console.log(user)
     if (user) {
       unsubscribe = listenToFriendRequests(user.uid);
     }

@@ -1,7 +1,6 @@
 import { addDoc, arrayUnion, collection, doc, getDoc, getDocs, onSnapshot, query, serverTimestamp, setDoc, updateDoc, where } from "firebase/firestore"
 import { db } from "../firebase/config"
 
-// export const getOrCreateChatService = async (members, name = "", groupAvatar = "") => {
 //     console.log(members);
 
 //     try {
@@ -93,6 +92,7 @@ export const getChatService = async (members) => {
 
 
 export const listenToUserChats = (userId, onUpdate) => {
+  
     const chatsRef = collection(db, 'chats');
     const q = query(chatsRef, where('membersId', 'array-contains', userId));
   

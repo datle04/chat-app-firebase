@@ -16,7 +16,6 @@ export const fetchFriends = createAsyncThunk('friends/fetchFriends', async (user
 export const sendRequest = createAsyncThunk("friends/sendRequest", async ({ currentUserId, targetUserId, authUser }, { rejectWithValue, dispatch }) => {
     try {
       const response = await sendFriendRequest(currentUserId, targetUserId, authUser);
-      console.log(response.currentUser);
 
       dispatch(setUser(response.currentUser))
       return response

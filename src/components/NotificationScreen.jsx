@@ -8,7 +8,7 @@ const NotificationScreen = () => {
     const friendRequests = useSelector(state => state.friend.friendRequests)
     const friendRequestsSent = useSelector(state => state.friend.friendRequestsSent)
     useEffect(()=> {
-        console.log(authUser);
+        console.log(friendRequests);
     },[])
     useEffect(() => {
         
