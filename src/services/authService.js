@@ -46,9 +46,6 @@ export const signInWithGoogle = async () => {
             avatar: userData.avatar,
             phoneNumber: userData.phoneNumber || "",
             createdAt: userData.createdAt?.toDate().toISOString() || "",
-            friends: userData.friends || [],
-            friendRequests: userData.friendRequests || [],
-            friendRequestsSent: userData.friendRequestsSent || [],
         };
 
     } catch (error) {
@@ -120,9 +117,6 @@ export const signInWithEmail = async (email, password) => {
             avatar: userData.avatar,
             phone: userData.phone || "",
             createdAt: userData.createdAt?.toDate().toISOString(),
-            friends: userData.friends || [],
-            friendRequests: userData.friendRequests || [],
-            friendRequestsSent: userData.friendRequestsSent || [],
         }
     } catch (error) {
         console.log(error);

@@ -4,11 +4,16 @@ import { useSelector } from 'react-redux'
 const NotificationScreen = () => {
 
     const authUser = useSelector(state => state.auth.user)
+    const friends = useSelector(state => state.friend.friends)
+    const friendRequests = useSelector(state => state.friend.friendRequests)
+    const friendRequestsSent = useSelector(state => state.friend.friendRequestsSent)
     useEffect(()=> {
         console.log(authUser);
+    },[])
+    useEffect(() => {
         
     },[])
-    
+
   return (
     <div 
         className='
@@ -18,10 +23,10 @@ const NotificationScreen = () => {
             <span className='px-2 py-2 text-[16px] font-bold text-black'>Friend Requests</span>
         </h2>
         {
-            authUser.friendRequests.length > 0 ? (
+            friendRequests.length > 0 ? (
                 <div className='w-full h-full flex flex-col '>
                    {
-                    authUser.friendRequests.map(item => (
+                    friendRequests.map(item => (
                         <div 
                             key={item.senderId}
                             className='

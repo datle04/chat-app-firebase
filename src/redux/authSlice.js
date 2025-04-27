@@ -1,5 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { signUpWithEmail, signInWithEmail, signInWithGoogle, logoutUser } from "../services/authService";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "../firebase/config";
 
 export const loginWithGoogle = createAsyncThunk("auth/loginWithGoogle", async (_, { rejectWithValue }) => {
     try {
@@ -32,6 +34,7 @@ export const logout = createAsyncThunk("auth/logout", async (_, { rejectWithValu
       return rejectWithValue(error.message);
     }
 });
+
 
 const authSlice = createSlice({
     name: "auth",
@@ -84,7 +87,7 @@ const authSlice = createSlice({
         .addCase(logout.rejected, (state, action) => {
           state.loading = false;
           state.error = action.payload;
-        });
+        })
     },
 });
 

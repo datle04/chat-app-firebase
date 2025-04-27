@@ -2,8 +2,10 @@ import { onAuthStateChanged } from "firebase/auth";
 import { useEffect, useState } from "react";
 import { auth, db } from "../firebase/config";
 import { useDispatch } from "react-redux";
+import { setFriendRequests, setFriendRequestsSent } from "../redux/friendSlice";
 import { setUser } from "../redux/authSlice";
 import { doc, getDoc } from "firebase/firestore";
+import { setFriends } from "../redux/friendSlice";
 
 const useAuth = () => {
     const [loading, setLoading] = useState(true);
@@ -27,10 +29,12 @@ const useAuth = () => {
                             avatar: userData.avatar,
                             phone: userData.phoneNumber || "",
                             createdAt: userData.createdAt.toDate().toISOString(),
-                            friends: userData.friends || [],
-                            friendRequests: userData.friendRequests || [],
-                            friendRequestsSent: userData.friendRequestsSent || [],
                         }));
+
+                        dispatch(setFriends(userData.friends || []))
+                        dispatch(setFriendRequests(userData.friendRequests || []));
+                        dispatch(setFriendRequestsSent(userData.friendRequestsSent || []));
+
                     } else {
                         console.log("No user document found!");
                     }
@@ -40,12 +44,16 @@ const useAuth = () => {
             } else {
                 // Dispatch null when user logs out
                 dispatch(setUser(null));
+                dispatch(setFriends([]));
+                dispatch(setFriendRequests([]));
+                dispatch(setFriendRequestsSent([]));
             }
             setLoading(false);
         });
 
         return () => unsubscribe(); // Cleanup listener when component unmount
     }, [dispatch]);
+    
 
     return { loading };
 };

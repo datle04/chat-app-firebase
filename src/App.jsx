@@ -10,13 +10,29 @@ import Footer from './components/Footer'
 import ChatPage from './pages/ChatPage'
 import { auth } from './firebase/config'
 import useAuth from './hooks/useAuth'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
+import { listenToFriendRequests } from './redux/friendSlice'
 
 
 function App() {
 
   const { loading } = useAuth();
+  const dispatch = useDispatch();
   const user = useSelector(state => state.auth.user); 
+
+  useEffect(() => {
+    let unsubscribe;
+    console.log(user)
+    if (user) {
+      unsubscribe = listenToFriendRequests(user.uid);
+    }
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    }
+  },[user, dispatch])
 
   if (loading) {
     return (
