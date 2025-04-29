@@ -23,7 +23,7 @@ function App() {
   useEffect(() => {
     let unsubscribe;
     if (user) {
-      unsubscribe = listenToFriendRequests(user.uid);
+      unsubscribe = dispatch(listenToFriendRequests(user.uid));
     }
 
     return () => {

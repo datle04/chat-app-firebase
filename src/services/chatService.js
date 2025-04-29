@@ -110,6 +110,10 @@ export const listenToUserChats = (userId, onUpdate) => {
 
   
 export const getUserChats = async (userId) => {
+    if (!userId) {
+      console.warn("userId is undefined in getUserChats");
+      return [];
+    }
     try {
         const chatsRef = collection(db, 'chats');
         const q = query(chatsRef, where('membersId', 'array-contains', userId));

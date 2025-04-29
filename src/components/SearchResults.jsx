@@ -4,30 +4,54 @@ import { useDispatch, useSelector } from 'react-redux'
 import { FiUserPlus } from "react-icons/fi";
 import { BsFillPersonCheckFill } from "react-icons/bs";
 import { LiaUserFriendsSolid } from "react-icons/lia";
-import { sendRequest } from '../redux/friendSlice';
+import { listenToFriendRequests, sendRequest } from '../redux/friendSlice';
 import toast from 'react-hot-toast';
 import { auth } from '../firebase/config';
+import { useSleep } from '../hooks/useSleep';
 
 const SearchResults = ({ search, selectedUser, setSelectedUser}) => {
     const authUser = useSelector(state => state.auth.user);
     const [searchResult, setSearchResult] = useState([])
+    const sleep = useSleep();
     const dispatch = useDispatch();
+    const friendRequestsSent = useSelector(state => state.friend.friendRequestsSent); 
 
     useEffect(() => {
-        const fetchSearch = setTimeout(async () => {
+        const fetchSearch = async () => {
             if (search.length > 0) {
+                await sleep(300);
                 const result = await searchUserByUsername(search);
                 setSearchResult(result.filter((item => item.username !== authUser.username)));
             }
-        }, 300);
-        return () => clearTimeout(fetchSearch);
+        };
+        fetchSearch();
         
-    },[search])
+    },[authUser.username, search])
 
-    const addFriend = async (id, targetId) => {
+    useEffect(() => {
+        console.log("Friend requests sent: ", friendRequestsSent);
+        
+    },[friendRequestsSent])
+
+    useEffect(() => {
+        if (!authUser?.uid) return;
+    
+        console.log("Setting up listener...");
+        const unsubscribe = listenToFriendRequests(authUser.uid);
+    
+        return () => {
+            console.log("Cleaning up listener...");
+            if (typeof unsubscribe === "function") {
+                unsubscribe(); // cleanup nếu cần
+            }
+        }
+    }, [authUser, dispatch]);
+
+    const addFriend = async (currentUser, targetUser) => {
         try {
-            dispatch(sendRequest({ currentUserId: id, targetUserId: targetId, authUser: authUser }));
-            toast.success("Friend request sent successfully");
+            await dispatch(sendRequest({ currentUserId: currentUser.uid, targetUserId: targetUser.uid, authUser: authUser })).unwrap();
+            toast.success("Friend request sent successfully"); 
+            
         } catch (error) {
             toast.error("Something went wrong");
             console.log(error);
@@ -40,6 +64,7 @@ const SearchResults = ({ search, selectedUser, setSelectedUser}) => {
             searchResult.length !== 0 ? (
                 searchResult.map((item, index) => (
                     <div
+                        key={item.uid}
                         onClick={() => setSelectedUser(item)}
                         className='
                             w-full flex items-center gap-5 px-4 py-2 border border-slate-100
@@ -57,18 +82,18 @@ const SearchResults = ({ search, selectedUser, setSelectedUser}) => {
                             flex w-5 h-5 justify-center items-center ml-auto rounded-full text-slate-600 cursor-pointer hover:bg-slate-200 transition-all duration-200 ease-in-out
                             
                         '>
-                        {
-                            item.friends.includes(authUser.uid) ? (
-                                <LiaUserFriendsSolid className='w-5 h-5 text-lg' /> // Đã là bạn
-                            ) : authUser.friendRequestsSent?.some(req => req.targetUserId === item.uid) ? (
-                                <BsFillPersonCheckFill className='w-5 h-5 text-lg' /> // Đã gửi lời mời
+                       {
+                            friendRequestsSent?.some(req => req.targetUserId === item.uid) ? (
+                                <BsFillPersonCheckFill className='w-5 h-5 text-lg' />
+                            ) : item.friends.includes(authUser.uid) ? (
+                                <LiaUserFriendsSolid className='w-5 h-5 text-lg' />
                             ) : (
                                 <FiUserPlus
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    addFriend(authUser.uid, item.uid);
-                                }}
-                                className='w-5 h-5 text-lg cursor-pointer hover:scale-110 transition'
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        addFriend(authUser, item);
+                                    }}
+                                    className='w-5 h-5 text-lg cursor-pointer hover:scale-110 transition'
                                 />
                             )
                         }

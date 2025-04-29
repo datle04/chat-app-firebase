@@ -16,11 +16,13 @@ const ConversationList = ({ search, setSearch, selectedUser, setSelectedUser }) 
     const [usersNotSelf, setUsersNotSelf] = useState({})
 
     useEffect(() => {   
-        if (authUser.user) {
-            console.log(authUser.user.uid);      
+        if (authUser.user?.uid) { // phải có uid thì mới dispatch
+            console.log("Fetching chats for:", authUser.user.uid);      
             dispatch(fetchChats(authUser.user.uid))
-        }    
-    },[authUser, dispatch])
+        } else {
+            console.warn("authUser.user.uid is undefined, skip fetching chats");
+        }
+    },[authUser.user, dispatch])
 
     useEffect(() => {
         let unsubscribe;

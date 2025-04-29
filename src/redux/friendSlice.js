@@ -14,10 +14,13 @@ export const fetchFriends = createAsyncThunk('friends/fetchFriends', async (user
 });
 
 export const sendRequest = createAsyncThunk("friends/sendRequest", async ({ currentUserId, targetUserId, authUser }, { rejectWithValue, dispatch }) => {
+
     try {
       const response = await sendFriendRequest(currentUserId, targetUserId, authUser);
 
-      dispatch(setUser(response.currentUser))
+      await dispatch(setFriendRequests(response.currentUser.friendRequests || []));
+      await dispatch(setFriendRequestsSent(response.targetUser.friendRequestsSent || []));
+      
       return response
     } catch (error) {
       return rejectWithValue(error.message);
@@ -61,9 +64,10 @@ const friendSlice = createSlice({
         })
   
         .addCase(sendRequest.pending, (state) => { state.loading = true; })
-        .addCase(sendRequest.fulfilled, (state, action) => {      
+        .addCase(sendRequest.fulfilled, (state, action) => {  
+          console.log(action.payload, "sendRequest fulfilled");
           state.loading = false;
-          state.friendRequests.push({ userId: action.payload.targetUserId, status: "pending" });
+          state.friendRequestsSent = action.payload.currentUser.friendRequestsSent || [];
       })
         .addCase(sendRequest.rejected, (state, action) => {
           state.loading = false;
@@ -87,20 +91,21 @@ const friendSlice = createSlice({
 
 // Lắng nghe friend requests realtime từ firebase
 export const listenToFriendRequests =  (userId) => (dispatch) => {
+  console.log("onsnapshot called!");
+  
   const userRef = doc(db, 'users', userId);
 
-  return onSnapshot(userRef, (docSnap) => {
+  return onSnapshot(userRef, async (docSnap) => {
     if (docSnap.exists()) {
       const data = docSnap.data();
-      dispatch(setFriendRequests(data.friendRequests || []));
-      dispatch(setFriendRequestsSent(data.friendRequestsSent || []));
+      await dispatch(setFriendRequests(data.friendRequests || []));
+      // await dispatch(setFriendRequestsSent(data.friendRequestsSent || []));
     }
   }, (error) => {
     console.log(error);
   }
 )
 }
-
 export const { setFriends, setFriendRequests, setFriendRequestsSent } = friendSlice.actions;
 
 export default friendSlice.reducer;
